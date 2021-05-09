@@ -1,55 +1,9 @@
 import React, { useEffect, useState } from 'react';
-
-import axios from 'axios';
-
-const Filter = ({ filter, handleFilterChange }) => {
-  return (
-    <div>
-      filter show with
-      <input value={filter} onChange={handleFilterChange}/>
-    </div>
-  )
-}
-
-const PersonForm = ({ addPerson, newPerson, handlePersonChange }) => {
-  return (
-    <form onSubmit={addPerson}>
-      <div>
-        name:
-        <input
-          name='name'
-          value={newPerson.name}
-          onChange={handlePersonChange}
-        />
-      </div>
-      <div>
-        number:
-        <input
-          name='number'
-          value={newPerson.number}
-          onChange={handlePersonChange}
-        />
-      </div>
-      <div>
-        <button type="submit">add</button>
-      </div>
-    </form>
-  )
-}
-
-const Persons = ({ persons, filter }) => {
-  const nameIncludesFilter = (person) => person.name.toLowerCase().includes(filter.toLowerCase());
-
-  return (
-    <ul>
-      {persons
-        .filter((person) => nameIncludesFilter(person))
-        .map((person) =>
-          <li key={person.name}>{person.name} {person.number}</li>
-      )}
-    </ul>
-  )
-}
+import phonebookService from './services/phonebook';
+import Filter from './components/Filter';
+import PersonForm from './components/PersonForm';
+import Persons from './components/Persons';
+import Notification from './components/Notification';
 
 const App = () => {
   const [persons, setPersons ] = useState([]);
@@ -57,32 +11,73 @@ const App = () => {
     { name: '', number: ''}
   )
   const [filter, setFilter] = useState('');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    console.log('effect');
-    axios
-      .get('http://localhost:3001/persons')
-      .then((response) => {
-        console.log('promise fulfilled');
-        setPersons(response.data);
-      })
+    phonebookService
+      .getAll()
+      .then((initialPersons) => setPersons(initialPersons))
   }, [])
-  console.log('render', persons.length, 'persons');
 
   const addPerson = (event) => {
     event.preventDefault();
 
-    const nameExists = persons.some((person) => person.name === newPerson.name);
+    const duplicatePerson = persons.find((person) => person.name === newPerson.name);
 
-    if (nameExists) {
-      window.alert(`${newPerson.name} is already added to phonebook`);
+    if (duplicatePerson) {
+      if (window.confirm(`${duplicatePerson.name} is already added to the phonebook, replace the old number with a new one?`)) {
+          phonebookService
+          .update(duplicatePerson.id, newPerson)
+          .then((returnedPerson) => {
+            setPersons(persons.map(person => person.id !== duplicatePerson.id ? person : returnedPerson));
+            setNewPerson({ name: '', number: ''});
+            setNotification({
+              type: 'success',
+              message: `Changed ${newPerson.name}'s phone number`
+            });
+            setTimeout(() => {
+              setNotification(null);
+            }, 3000)
+          })
+        }
     } else {
-      setPersons(persons.concat(newPerson));
-      setNewPerson({ name: '', number: ''});
+      phonebookService
+        .create(newPerson)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setNewPerson({ name: '', number: ''});
+          setNotification({
+            type: 'success',
+            message: `Added ${newPerson.name}`
+          });
+          setTimeout(() => {
+            setNotification(null);
+          }, 3000)
+        })
     }
   }
 
-  const handlePersonChange = (event) => {
+  const handleDelete = (personObject) => {
+    if (window.confirm(`Delete ${personObject.name}`)) {
+      phonebookService
+      .remove(personObject.id)
+      .then((deletedPerson) => {
+        setPersons(persons.filter((person) => person.id !== personObject.id));
+      }).catch((error) => {
+        setNotification({
+          type: 'error',
+          message: `${personObject.name} was already deleted from the server`
+        });
+        setPersons(persons.filter(person => person.id !== personObject.id));
+        setTimeout(() => {
+          setNotification(null);
+        }, 3000)
+      })
+    }
+  }
+
+
+  const handlePersonFormChange = (event) => {
     setNewPerson(({
       ...newPerson,
       [event.target.name]: event.target.value }
@@ -95,23 +90,26 @@ const App = () => {
 
   return (
     <div>
+      <Notification notification={notification} />
       <h2>Phonebook</h2>
-
-      <Filter filter={filter} handleFilterChange={handleFilterChange} />
-
+      <Filter
+        filter={filter}
+        handleFilterChange={handleFilterChange}
+      />
       <h3>Add a new</h3>
-
       <PersonForm
         addPerson={addPerson}
         newPerson={newPerson}
-        handlePersonChange={handlePersonChange}
+        handlePersonFormChange={handlePersonFormChange}
       />
-
       <h2>Numbers</h2>
-
-      <Persons persons={persons} filter={filter}/>
+      <Persons
+        persons={persons}
+        filter={filter}
+        handleDelete={handleDelete}
+      />
     </div>
   )
 }
 
-export default App
+export default App;
