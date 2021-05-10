@@ -9,7 +9,7 @@ app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
-morgan.token('request-body', (req, res) => {
+morgan.token('request-body', (req) => {
   return JSON.stringify(req.body)
 })
 
@@ -30,7 +30,7 @@ app.get('/info', (request, response) => {
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then((persons) => {
-    response.json(persons);
+    response.json(persons)
   })
 })
 
@@ -50,7 +50,7 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.post('/api/persons', (request, response, next) => {
-  const body = request.body;
+  const body = request.body
 
   if (!body.name || !body.number) {
     return response.status(400).json({
@@ -65,7 +65,7 @@ app.post('/api/persons', (request, response, next) => {
 
   person.save()
     .then((savedPerson) => {
-      response.json(savedPerson);
+      response.json(savedPerson)
     })
     .catch((error) => next(error))
 })
@@ -80,7 +80,7 @@ app.put('/api/persons/:id', (request, response, next) => {
   const opts = {
     new: true,
     runValidators: true
-  };
+  }
 
   Person.findByIdAndUpdate(request.params.id, update, opts)
     .then((updatedPerson) => {
@@ -91,7 +91,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
