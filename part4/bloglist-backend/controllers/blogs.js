@@ -36,14 +36,14 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
     user: user.id,
   });
 
-  if (blog.title === undefined || blog.url === undefined) {
-    response.status(400).end();
-  } else {
-    const savedBlog = await blog.save();
-    user.blogs = user.blogs.concat(savedBlog._id);
-    await user.save();
-    response.json(savedBlog.toJSON());
+  if (!blog.title || !blog.url) {
+    return response.status(400).send({ error: 'title or url missing' });
   }
+
+  const savedBlog = await blog.save();
+  user.blogs = user.blogs.concat(savedBlog.id);
+  await user.save();
+  response.status(201).json(savedBlog.toJSON());
 });
 
 blogsRouter.delete(
@@ -59,12 +59,18 @@ blogsRouter.delete(
     // get user that's making the request
     const user = request.user;
 
-    if (blog.user.toString() === user.id.toString()) {
-      await Blog.findByIdAndDelete(request.params.id);
-      response.status(204).end();
-    } else {
-      response.status(401).json({ error: "not blog's owner" }).end();
+    if (blog.user.toString() !== user.id.toString()) {
+      return response
+        .status(401)
+        .json({ error: 'only the creator can delete blogs' });
     }
+
+    await blog.remove();
+    user.blogs = user.blogs.filter(
+      (blog) => blog.id.toString() !== request.params.id.toString()
+    );
+    await user.save();
+    response.status(204).end();
   }
 );
 
