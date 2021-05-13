@@ -29,18 +29,18 @@ describe('when some blogs are saved', () => {
 
     expect(response.body[0].id).toBeDefined();
   });
-});
 
-test('a blog can be edited', async () => {
-  const [aBlog] = await helper.blogsInDb();
+  test('it can be successfully edited', async () => {
+    const [aBlog] = await helper.blogsInDb();
 
-  const editedBlog = { ...aBlog, likes: aBlog.likes + 1 };
+    const editedBlog = { ...aBlog, likes: aBlog.likes + 1 };
 
-  await api.put(`/api/blogs/${aBlog.id}`).send(editedBlog).expect(200);
+    await api.put(`/api/blogs/${aBlog.id}`).send(editedBlog).expect(200);
 
-  const blogsAtEnd = await helper.blogsInDb();
-  const edited = blogsAtEnd.find((blog) => blog.url === aBlog.url);
-  expect(edited.likes).toBe(aBlog.likes + 1);
+    const blogsAtEnd = await helper.blogsInDb();
+    const edited = blogsAtEnd.find((blog) => blog.url === aBlog.url);
+    expect(edited.likes).toBe(aBlog.likes + 1);
+  });
 });
 
 describe('when a blog is posted to api', () => {
