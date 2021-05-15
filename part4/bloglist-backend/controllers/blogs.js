@@ -40,9 +40,12 @@ blogsRouter.post('/', middleware.userExtractor, async (request, response) => {
     return response.status(400).send({ error: 'title or url missing' });
   }
 
+  blog.user = user;
   const savedBlog = await blog.save();
+
   user.blogs = user.blogs.concat(savedBlog.id);
   await user.save();
+
   response.status(201).json(savedBlog.toJSON());
 });
 

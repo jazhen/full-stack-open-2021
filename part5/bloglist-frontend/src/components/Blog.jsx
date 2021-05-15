@@ -34,17 +34,16 @@ const Blog = ({ loggedInUser, blog, updateBlog, removeBlog }) => {
         <>
           <div>{blog.url}</div>
           <div>
-            likes {blog.likes}
+            likes <span className="likes-count">{blog.likes}</span>
             <button
               className="like"
               type="button"
-              onClick={() => updateBlog(blog)}
-            >
+              onClick={() => updateBlog(blog)}>
               like
             </button>
           </div>
           {loggedInUser.username === blog.user.username ? (
-            <button type="button" onClick={handleRemove}>
+            <button className="remove" type="button" onClick={handleRemove}>
               remove
             </button>
           ) : null}

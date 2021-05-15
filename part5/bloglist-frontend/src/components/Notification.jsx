@@ -13,7 +13,11 @@ Notification.propTypes = {
   notification: PropTypes.shape({
     message: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-  }).isRequired,
+  }),
+};
+
+Notification.defaultProps = {
+  notification: null,
 };
 
 export default Notification;
