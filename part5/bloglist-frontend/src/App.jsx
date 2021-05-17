@@ -7,11 +7,13 @@ import Togglable from './components/Togglable';
 
 import blogService from './services/blogs';
 import loginService from './services/login';
+import storage from './utils/storage';
 
 const App = () => {
   const [user, setUser] = useState(null);
   const [blogs, setBlogs] = useState([]);
   const [notification, setNotification] = useState(null);
+
   const blogFormRef = useRef();
 
   useEffect(() => {
@@ -25,14 +27,9 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedInBlogAppUser');
+    const loggedInUser = storage.loadUser();
 
-    if (loggedUserJSON) {
-      const loggedInUser = JSON.parse(loggedUserJSON);
-
-      setUser(loggedInUser);
-      blogService.setToken(loggedInUser.token);
-    }
+    setUser(loggedInUser);
   }, []);
 
   const notifyWith = (message, type) => {
@@ -42,10 +39,27 @@ const App = () => {
     }, 5000);
   };
 
+  const handleLogin = async (username, password) => {
+    try {
+      const loggedInUser = await loginService.login({ username, password });
+
+      setUser(loggedInUser);
+      storage.saveUser(loggedInUser);
+    } catch (exception) {
+      notifyWith('wrong username or password', 'error');
+    }
+  };
+
+  const handleLogout = () => {
+    storage.logoutUser();
+    setUser(null);
+  };
+
   const addBlog = async (newBlog) => {
     try {
-      blogFormRef.current.toggleVisibility();
       const createdBlog = await blogService.create(newBlog);
+
+      blogFormRef.current.toggleVisibility();
       setBlogs(blogs.concat(createdBlog));
       notifyWith(
         `a new blog ${createdBlog.title} by ${createdBlog.author} added`,
@@ -59,18 +73,23 @@ const App = () => {
   const updateBlog = async (blogToUpdate) => {
     try {
       const updatedBlog = {
-        user: blogToUpdate.user.id,
-        author: blogToUpdate.author,
-        title: blogToUpdate.title,
-        url: blogToUpdate.url,
+        ...blogToUpdate,
         likes: blogToUpdate.likes + 1,
+        user: blogToUpdate.user.id,
       };
-      const returnedBlog = await blogService.update(
-        blogToUpdate.id,
-        updatedBlog
-      );
+
+      await blogService.update(blogToUpdate.id, updatedBlog);
+
       setBlogs(
-        blogs.map((blog) => (blog.id !== blogToUpdate.id ? blog : returnedBlog))
+        blogs.map((blog) =>
+          blog.id === updatedBlog.id
+            ? {
+                ...updatedBlog,
+                likes: updatedBlog.likes,
+                user: blogToUpdate.user,
+              }
+            : blog
+        )
       );
     } catch (exception) {
       notifyWith(exception.response.data.error, 'error');
@@ -85,28 +104,6 @@ const App = () => {
     }
 
     setBlogs(blogs.filter((blog) => blog.id !== id));
-  };
-
-  const handleLogin = async (username, password) => {
-    try {
-      const loggedInUser = await loginService.login({ username, password });
-
-      window.localStorage.setItem(
-        'loggedInBlogAppUser',
-        JSON.stringify(loggedInUser)
-      );
-      blogService.setToken(loggedInUser.token);
-
-      setUser(loggedInUser);
-    } catch (exception) {
-      notifyWith('wrong username or password', 'error');
-    }
-  };
-
-  const handleLogout = () => {
-    window.localStorage.removeItem('loggedInBlogAppUser');
-
-    setUser(null);
   };
 
   const blogForm = () => (

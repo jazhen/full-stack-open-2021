@@ -6,7 +6,16 @@ const Notification = ({ notification }) => {
     return null;
   }
 
-  return <div className={notification.type}>{notification.message}</div>;
+  const style = {
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    color:
+      notification.type === 'success' ? 'rgb(0, 128, 0)' : 'rgb(255, 0, 0)',
+    background: 'lightgrey',
+  };
+
+  return <div style={style}>{notification.message}</div>;
 };
 
 Notification.propTypes = {
