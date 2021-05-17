@@ -93,6 +93,16 @@ describe('Blog app', function () {
           .then((el) => {
             el.click();
           });
+
+        cy.get('body')
+          .find('.likes-count')
+          .then((likesCount) => {
+            const likes = Array.from(
+              likesCount.map((_, el) => Number(el.innerText))
+            );
+
+            expect(likes).to.deep.eq(likes.sort((a, b) => b - a));
+          });
       });
     });
   });
