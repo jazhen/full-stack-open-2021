@@ -15,9 +15,10 @@
     "prettier"
   ],
   "rules": {
+    "import/no-extraneous-dependencies" : ["error", {"devDependencies": true}],
     "prettier/prettier": "error",
     "react/jsx-filename-extension": "off",
-    "import/no-extraneous-dependencies" : ["error", {"devDependencies": true}],
+    "react/no-unused-prop-types": "warn",
     "react/prop-types": "warn"
   },
   "parserOptions": {

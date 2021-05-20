@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useDispatch } from 'react-redux';
+import { deleteBlog, updateBlog } from '../reducers/blogReducer';
+import { setNotification } from '../reducers/notificationReducer';
 
-const Blog = ({ loggedInUser, blog, updateBlog, removeBlog }) => {
+const Blog = ({ blog, isOwner }) => {
   const [visible, setVisible] = useState(false);
+  const dispatch = useDispatch();
 
   const toggleVisibility = () => {
     setVisible(!visible);
@@ -10,7 +14,24 @@ const Blog = ({ loggedInUser, blog, updateBlog, removeBlog }) => {
 
   const handleRemove = () => {
     if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
-      removeBlog(blog.id);
+      try {
+        dispatch(deleteBlog(blog.id));
+      } catch (exception) {
+        dispatch(setNotification(exception.response.data.error, 'error', 5));
+      }
+    }
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const updatedBlog = {
+        ...blog,
+        likes: blog.likes + 1,
+      };
+
+      dispatch(updateBlog(updatedBlog));
+    } catch (exception) {
+      dispatch(setNotification(exception.response.data.error, 'error', 5));
     }
   };
 
@@ -35,15 +56,11 @@ const Blog = ({ loggedInUser, blog, updateBlog, removeBlog }) => {
           <div>{blog.url}</div>
           <div>
             likes <span className="likes-count">{blog.likes}</span>
-            <button
-              className="like"
-              type="button"
-              onClick={() => updateBlog(blog)}
-            >
+            <button className="like" type="button" onClick={handleUpdate}>
               like
             </button>
           </div>
-          {loggedInUser.username === blog.user.username ? (
+          {isOwner ? (
             <button className="remove" type="button" onClick={handleRemove}>
               remove
             </button>
@@ -68,8 +85,6 @@ Blog.propTypes = {
       username: PropTypes.string.isRequired,
     }),
   }).isRequired,
-  updateBlog: PropTypes.func.isRequired,
-  removeBlog: PropTypes.func.isRequired,
 };
 
 export default Blog;

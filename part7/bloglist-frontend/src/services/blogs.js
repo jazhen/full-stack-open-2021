@@ -19,8 +19,8 @@ const create = async (newBlog) => {
   return response.data;
 };
 
-const update = async (id, newBlog) => {
-  const response = await axios.put(`${baseUrl}/${id}`, newBlog);
+const update = async (updatedBlog) => {
+  const response = await axios.put(`${baseUrl}/${updatedBlog.id}`, updatedBlog);
 
   return response.data;
 };
@@ -31,4 +31,11 @@ const remove = async (id) => {
   return response.data;
 };
 
-export default { getAll, create, update, remove };
+const blogService = {
+  getAll,
+  create,
+  update,
+  remove,
+};
+
+export default blogService;

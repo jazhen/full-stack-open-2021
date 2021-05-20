@@ -7,27 +7,21 @@ import LoginForm from './components/LoginForm';
 import Notification from './components/Notification';
 import Togglable from './components/Togglable';
 
-import blogService from './services/blogs';
+// import blogService from './services/blogs';
 import loginService from './services/login';
 import storage from './utils/storage';
 
 import { setNotification } from './reducers/notificationReducer';
+import { createBlog, initializeBlogs } from './reducers/blogReducer';
 
 const App = () => {
   const [user, setUser] = useState(null);
-  const [blogs, setBlogs] = useState([]);
 
   const blogFormRef = useRef();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchBlogs = async () => {
-      const allBlogs = await blogService.getAll();
-
-      setBlogs(allBlogs);
-    };
-
-    fetchBlogs();
+    dispatch(initializeBlogs());
   }, []);
 
   useEffect(() => {
@@ -54,15 +48,13 @@ const App = () => {
 
   const addBlog = async (newBlog) => {
     try {
-      const createdBlog = await blogService.create(newBlog);
+      dispatch(createBlog(newBlog));
 
       blogFormRef.current.toggleVisibility();
 
-      setBlogs(blogs.concat(createdBlog));
-
       dispatch(
         setNotification(
-          `a new blog ${createdBlog.title} by ${createdBlog.author} added`,
+          `a new blog ${newBlog.title} by ${newBlog.author} added`,
           'success',
           5
         )
@@ -72,49 +64,13 @@ const App = () => {
     }
   };
 
-  const updateBlog = async (blogToUpdate) => {
-    try {
-      const updatedBlog = {
-        ...blogToUpdate,
-        likes: blogToUpdate.likes + 1,
-        user: blogToUpdate.user.id,
-      };
-
-      await blogService.update(blogToUpdate.id, updatedBlog);
-
-      setBlogs(
-        blogs.map((blog) =>
-          blog.id === updatedBlog.id
-            ? {
-                ...updatedBlog,
-                likes: updatedBlog.likes,
-                user: blogToUpdate.user,
-              }
-            : blog
-        )
-      );
-    } catch (exception) {
-      dispatch(setNotification(exception.response.data.error, 'error', 5));
-    }
-  };
-
-  const removeBlog = async (id) => {
-    try {
-      await blogService.remove(id);
-    } catch (exception) {
-      dispatch(setNotification(exception.response.data.error, 'error', 5));
-    }
-
-    setBlogs(blogs.filter((blog) => blog.id !== id));
-  };
-
   const blogForm = () => (
     <Togglable buttonLabel="new blog" ref={blogFormRef}>
       <BlogForm createBlog={addBlog} />
     </Togglable>
   );
 
-  if (user === null) {
+  if (!user) {
     return (
       <div>
         <h2>Log in to application</h2>
@@ -133,12 +89,7 @@ const App = () => {
         logout
       </button>
       {blogForm()}
-      <Blogs
-        blogs={blogs}
-        loggedInUser={user}
-        updateBlog={updateBlog}
-        removeBlog={removeBlog}
-      />
+      <Blogs loggedInUser={user} />
     </div>
   );
 };

@@ -1,7 +1,9 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Blog from './Blog';
 
-const Blogs = ({ blogs, loggedInUser, updateBlog, removeBlog }) => {
+const Blogs = ({ loggedInUser }) => {
+  const blogs = useSelector((state) => state.blogs);
   const byLikesDescending = (a, b) => b.likes - a.likes;
   const sortedBlogs = blogs.sort(byLikesDescending);
 
@@ -10,10 +12,8 @@ const Blogs = ({ blogs, loggedInUser, updateBlog, removeBlog }) => {
       {sortedBlogs.map((blog) => (
         <Blog
           key={blog.id}
-          loggedInUser={loggedInUser}
           blog={blog}
-          updateBlog={updateBlog}
-          removeBlog={removeBlog}
+          isOwner={loggedInUser.username === blog.user.username}
         />
       ))}
     </>
