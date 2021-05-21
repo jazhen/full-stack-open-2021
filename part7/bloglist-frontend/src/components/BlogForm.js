@@ -1,53 +1,41 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
+import useField from '../hooks/useFields';
 
 const BlogForm = ({ createBlog }) => {
-  const [newBlog, setNewBlog] = useState({ title: '', author: '', url: '' });
+  const title = useField('text');
+  const author = useField('text');
+  const url = useField('text');
 
-  const addBlog = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    createBlog(newBlog);
-    setNewBlog({ title: '', author: '', url: '' });
-  };
-
-  const handleChange = (event) => {
-    setNewBlog({
-      ...newBlog,
-      [event.target.name]: event.target.value,
+    createBlog({
+      title: title.fields.value,
+      author: author.fields.value,
+      url: url.fields.value,
     });
+
+    title.reset();
+    author.reset();
+    url.reset();
   };
 
   return (
     <div>
       <h2>create new</h2>
-      <form id="form" onSubmit={addBlog}>
+      <form id="form" onSubmit={handleSubmit}>
         <div>
           title:
-          <input
-            id="title"
-            name="title"
-            value={newBlog.title}
-            onChange={handleChange}
-          />
+          <input {...title.fields} />
         </div>
         <div>
           author:
-          <input
-            id="author"
-            name="author"
-            value={newBlog.author}
-            onChange={handleChange}
-          />
+          <input {...author.fields} />
         </div>
         <div>
           url:
-          <input
-            id="url"
-            name="url"
-            value={newBlog.url}
-            onChange={handleChange}
-          />
+          <input {...url.fields} />
         </div>
         <button id="create-blog" type="submit">
           create

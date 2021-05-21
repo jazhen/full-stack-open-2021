@@ -4,12 +4,12 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 
 import blogReducer from './reducers/blogReducer';
 import notificationReducer from './reducers/notificationReducer';
-// import filterReducer from './reducers/filterReducer';
+import loginReducer from './reducers/loginReducer';
 
 const reducer = combineReducers({
   blogs: blogReducer,
   notification: notificationReducer,
-  // filter: filterReducer,
+  login: loginReducer,
 });
 
 const store = createStore(reducer, composeWithDevTools(applyMiddleware(thunk)));

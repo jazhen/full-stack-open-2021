@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router';
+
 import { deleteBlog, updateBlog } from '../reducers/blogReducer';
 import { setNotification } from '../reducers/notificationReducer';
 
-const Blog = ({ blog, isOwner }) => {
-  const [visible, setVisible] = useState(false);
+const Blog = ({ blog, loggedInUser }) => {
   const dispatch = useDispatch();
+  const history = useHistory();
 
-  const toggleVisibility = () => {
-    setVisible(!visible);
-  };
+  const isOwner = blog.user.username === loggedInUser.username;
 
   const handleRemove = () => {
     if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
       try {
         dispatch(deleteBlog(blog.id));
+
+        history.push('/');
       } catch (exception) {
         dispatch(setNotification(exception.response.data.error, 'error', 5));
       }
@@ -35,37 +37,23 @@ const Blog = ({ blog, isOwner }) => {
     }
   };
 
-  const blogStyle = {
-    paddingTop: 10,
-    paddingLeft: 2,
-    border: 'solid',
-    borderWidth: 1,
-    marginBottom: 5,
-  };
-
   return (
-    <div style={blogStyle}>
+    <div>
+      <h1>
+        {blog.title} by {blog.author}
+      </h1>
+      <a href={blog.url}>{blog.url}</a>
       <div>
-        {blog.title} {blog.author}
-        <button className="view" type="button" onClick={toggleVisibility}>
-          {visible ? 'hide' : 'view'}
+        {blog.likes} likes
+        <button className="like" type="button" onClick={handleUpdate}>
+          like
         </button>
       </div>
-      {visible ? (
-        <>
-          <div>{blog.url}</div>
-          <div>
-            likes <span className="likes-count">{blog.likes}</span>
-            <button className="like" type="button" onClick={handleUpdate}>
-              like
-            </button>
-          </div>
-          {isOwner ? (
-            <button className="remove" type="button" onClick={handleRemove}>
-              remove
-            </button>
-          ) : null}
-        </>
+      added by {blog.user.name}
+      {isOwner ? (
+        <button className="remove" type="button" onClick={handleRemove}>
+          remove
+        </button>
       ) : null}
     </div>
   );
@@ -82,8 +70,9 @@ Blog.propTypes = {
     url: PropTypes.string.isRequired,
     likes: PropTypes.number.isRequired,
     user: PropTypes.shape({
+      name: PropTypes.string.isRequired,
       username: PropTypes.string.isRequired,
-    }),
+    }).isRequired,
   }).isRequired,
 };
 
