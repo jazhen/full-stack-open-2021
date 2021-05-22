@@ -45,8 +45,8 @@ const App = () => {
 
   if (!user) {
     return (
-      <div>
-        <h2>Log in to application</h2>
+      <div className="w-full flex flex-col items-center">
+        <h1 className="m-8">Log in to Blog App</h1>
         <Notification />
         <LoginForm />
       </div>

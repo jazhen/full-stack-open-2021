@@ -18,17 +18,39 @@ const LoginForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        username
-        <input id="username" {...username.fields} />
+    <form onSubmit={handleSubmit} className="bg-white p-8">
+      <div className="mb-4">
+        <label
+          htmlFor="username"
+          className="block text-gray-700 text-sm font-bold mb-2"
+        >
+          username
+        </label>
+        <input id="username" placeholder="username" {...username.fields} />
       </div>
-      <div>
-        password
-        <input id="password" {...password.fields} />
+      <div className="mb-6">
+        <label
+          htmlFor="password"
+          className="block text-gray-700 text-sm font-bold mb-2"
+        >
+          password
+        </label>
+        <input id="password" placeholder="************" {...password.fields} />
       </div>
-      <button id="login-button" type="submit">
-        login
+      <button
+        type="submit"
+        className="
+        bg-blue-500
+        hover:bg-blue-700
+        text-white
+        font-bold
+        py-2
+        px-4
+        focus:outline-none
+        focus:shadow-outline
+      "
+      >
+        log in
       </button>
     </form>
   );
